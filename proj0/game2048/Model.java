@@ -1,6 +1,7 @@
 package game2048;
 
 import java.util.Formatter;
+import java.util.Iterator;
 import java.util.Observable;
 
 
@@ -138,6 +139,23 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        /* using Iterator
+        Iterator<Tile> tileIterator = b.iterator();
+        while (tileIterator.hasNext()) {
+            if (tileIterator.next() == null) {
+                return true;
+            }
+        }
+        return false;
+        */
+        /* using traditional for loop */
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +166,25 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        /* using Iterator
+        Iterator<Tile> tileIterator = b.iterator();
+        while (tileIterator.hasNext()) {
+            Tile test = tileIterator.next();
+            if (test != null && test.value() == MAX_PIECE) {
+                return true;
+            }
+        }
+        return false;
+        */
+        /* using traditional for loop */
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                Tile test = b.tile(i, j);
+                if (test != null && test.value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +196,46 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        /* if there is at least one empty space on the board then return*/
+        if (emptySpaceExists(b)) {
+            return true;
+        }
+        /* check tile value with the prev and next horizontal one */
+        for (int i = 0; i < b.size(); i += 2) {
+            for (int j = 0; j < b.size(); j++) {
+                Tile test = b.tile(i, j);
+                if (i - 1 > 0) {
+                    Tile testLeft = b.tile(i-1, j);
+                    if (test.value() == testLeft.value()) {
+                        return true;
+                    }
+                }
+                if (i + 1 < b.size()) {
+                    Tile testRight = b.tile(i+1, j);
+                    if (test.value() == testRight.value()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        /* check tile value with the prev and next vertical one*/
+        for (int i = 0; i < b.size(); i ++) {
+            for (int j = 0; j < b.size(); j += 2) {
+                Tile test = b.tile(i, j);
+                if (j - 1 > 0) {
+                    Tile testUp = b.tile(i, j - 1);
+                    if (test.value() == testUp.value()) {
+                        return true;
+                    }
+                }
+                if (j + 1 < b.size()) {
+                    Tile testDown = b.tile(i, j + 1);
+                    if (test.value() == testDown.value()) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
