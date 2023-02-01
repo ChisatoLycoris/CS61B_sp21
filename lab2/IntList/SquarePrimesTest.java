@@ -21,9 +21,9 @@ public class SquarePrimesTest {
     /** test for isPrime method to find out bug*/
     @Test
     public void testSquarePrimes1() {
-        IntList lst = IntList.of(13, 15, 16, 19, 23);
+        IntList lst = IntList.of(13, 15, 16, 19, 23, 0);
         boolean changed = IntListExercises.squarePrimes(lst);
-        assertEquals("169 -> 15 -> 16 -> 361 -> 529", lst.toString());
+        assertEquals("169 -> 15 -> 16 -> 361 -> 529 -> 0", lst.toString());
         assertTrue(changed);
     }
 }
