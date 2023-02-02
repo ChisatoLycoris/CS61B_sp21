@@ -6,7 +6,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author Ming
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -114,6 +114,55 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        int size = size();
+        Tile[] tiles = new Tile[size];
+        for(int i = 0; i < size; i ++) {
+            for(int j = 0; j < size; j ++) {
+                tiles[j] = board.tile(i, j);
+            }
+            int merged = -1;
+            for(int j = size - 2; j > -1; j--) {
+                if (tiles[j] == null) {
+                    continue;
+                }
+                int target = j + 1;
+                while (tiles[target] == null && target < size - 1) {
+                    target = target + 1;
+                }
+                if (tiles[target] == null) {
+                    tiles[target] = tiles[j];
+                    board.move(i, target, tiles[j]);
+                    tiles[j] = null;
+                    changed = true;
+                    continue;
+                }
+                if (tiles[target].value() != tiles[j].value()) {
+                    if (target - 1 != j) {
+                        tiles[target - 1] = tiles[j];
+                        board.move(i, target - 1, tiles[j]);
+                        tiles[j] = null;
+                        changed = true;
+                        continue;
+                    }
+                }
+                if (target == merged) {
+                    if (target - 1 != j) {
+                        tiles[target - 1] = tiles[j];
+                        board.move(i, target - 1, tiles[j]);
+                        tiles[j] = null;
+                        changed = true;
+                        continue;
+                    }
+                }
+                score += tiles[j].value() *2;
+                board.move(i, target, tiles[j]);
+                tiles[j] = null;
+                tiles[target] = board.tile(i, target);
+                merged = target;
+                changed = true;
+
+            }
+        }
 
         checkGameOver();
         if (changed) {
