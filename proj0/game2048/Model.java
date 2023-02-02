@@ -118,18 +118,26 @@ public class Model extends Observable {
         int size = size();
         Tile[] tiles = new Tile[size];
         for(int i = 0; i < size; i ++) {
+            /* Create local variable reference to the tile each row. */
             for(int j = 0; j < size; j ++) {
                 tiles[j] = board.tile(i, j);
             }
+            /* Record the last index of tiles[] that has merged to prevent merging again.
+             * Initialized -1 as nothing merged yet. */
             int merged = -1;
             for(int j = size - 2; j > -1; j--) {
+                /* Escape checking if there is no tile at current position. */
                 if (tiles[j] == null) {
                     continue;
                 }
+                /* Record the index that we are going to check with current tile. */
                 int target = j + 1;
+                /* Adjust the target if it is null and still have space on the board. */
                 while (tiles[target] == null && target < size - 1) {
                     target = target + 1;
                 }
+                /* If target still remains empty, it means that the edge of the board is empty.
+                 * We can move current tile to the target place since it was empty. */
                 if (tiles[target] == null) {
                     tiles[target] = tiles[j];
                     board.move(i, target, tiles[j]);
@@ -137,6 +145,9 @@ public class Model extends Observable {
                     changed = true;
                     continue;
                 }
+                /* If target's value equals current tile's value, then we need to further check.
+                 * If there is empty space between target and current tile, we can move current tile to that space.
+                 * Otherwise, current tile just remains at same place. */
                 if (tiles[target].value() != tiles[j].value()) {
                     if (target - 1 != j) {
                         tiles[target - 1] = tiles[j];
@@ -146,7 +157,16 @@ public class Model extends Observable {
                     }
                     continue;
                 }
+                /* Program running to here implies some information:
+                 * 1. Current place is not empty.
+                 * 2. Target place is not empty.
+                 * 3. There is no tile between target tile and current tile.
+                 * 4. The value of current tile and the value of target tile are the same.
+                 * However, we still have to check if target tile is already merged.
+                 * If target tile already merged, then we cannot merge current tile to target tile. */
                 if (target == merged) {
+                    /* If there is empty space between target and current tile,
+                     * then we move current tile to that space. */
                     if (target - 1 != j) {
                         tiles[target - 1] = tiles[j];
                         board.move(i, target - 1, tiles[j]);
@@ -155,6 +175,7 @@ public class Model extends Observable {
                     }
                     continue;
                 }
+                /* Finally, after several checks we can merge current tile to target tile. */
                 score += tiles[j].value() * 2;
                 board.move(i, target, tiles[j]);
                 tiles[j] = null;
