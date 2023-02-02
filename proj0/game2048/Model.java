@@ -111,6 +111,7 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
+        board.startViewingFrom(side);
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
@@ -142,8 +143,8 @@ public class Model extends Observable {
                         board.move(i, target - 1, tiles[j]);
                         tiles[j] = null;
                         changed = true;
-                        continue;
                     }
+                    continue;
                 }
                 if (target == merged) {
                     if (target - 1 != j) {
@@ -151,10 +152,10 @@ public class Model extends Observable {
                         board.move(i, target - 1, tiles[j]);
                         tiles[j] = null;
                         changed = true;
-                        continue;
                     }
+                    continue;
                 }
-                score += tiles[j].value() *2;
+                score += tiles[j].value() * 2;
                 board.move(i, target, tiles[j]);
                 tiles[j] = null;
                 tiles[target] = board.tile(i, target);
@@ -168,6 +169,7 @@ public class Model extends Observable {
         if (changed) {
             setChanged();
         }
+        board.startViewingFrom(Side.NORTH);
         return changed;
     }
 
