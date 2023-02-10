@@ -60,7 +60,7 @@ public class LinkedListDeque<T> implements Deque<T>{
         }
         printDeque.delete(printDeque.length() - 2, printDeque.length());
         printDeque.append("]");
-        System.out.print(printDeque);
+        System.out.println(printDeque);
     }
 
     @Override

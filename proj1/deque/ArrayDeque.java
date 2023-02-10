@@ -43,7 +43,7 @@ public class ArrayDeque<T> implements Deque<T>{
      * */
     private void resize() {
         T[] newItems;
-        if(usage < 0.25 && size > 4) {
+        if(usage < 0.25 && size > 15) {
             newItems = (T[]) new Object[items.length / 2];
         } else if (usage >= 0.5) {
             newItems = (T[]) new Object[items.length * 2];
@@ -76,7 +76,7 @@ public class ArrayDeque<T> implements Deque<T>{
         }
         printDeque.delete(printDeque.length() - 2, printDeque.length());
         printDeque.append("]");
-        System.out.print(printDeque);
+        System.out.println(printDeque);
     }
 
     @Override
