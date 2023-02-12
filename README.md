@@ -5,4 +5,4 @@ self learning
 ## Links
 
 - <https://sp21.datastructur.es>
-- <https://github.com/Berkeley-CS61B/skeleton-sp21>
+- <https://github.com/Berkeley-CS61B>
