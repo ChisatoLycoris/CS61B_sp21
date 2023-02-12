@@ -1,7 +1,8 @@
-package list;
+package lecture9;
+
 
 /* SLList, but with additional rotateRight operation*/
-public class RotatingSLList<Item> extends GenericSLList<Item> {
+public class RotatingSLList<Item> extends SLList<Item> {
     /* To do: Implement RotatingSLList such that code compiles and outputs correct result.*/
 
 

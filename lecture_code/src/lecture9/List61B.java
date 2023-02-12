@@ -1,4 +1,4 @@
-package list;
+package lecture9;
 
 public interface List61B<Item> {
 	

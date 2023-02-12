@@ -1,7 +1,8 @@
-package list;
+package lecture9;
+
 /*An GenericSLList is a list of Generic Type, or an Object*/
-public class GenericSLList<GenericType> {
-	
+public class SLList<GenericType> implements List61B<GenericType> {
+
 	/**Nested classes are useful when a class doesn't stand on its own
 	 * and is obvious subordinate to another class.
 	 * make the nested class private if other classes should never use the nested class*/
@@ -14,33 +15,44 @@ public class GenericSLList<GenericType> {
 	        next = n;
 	    }
 	}
-	
+
 	/* The first item (if it exists) is at sentinel.next*/
 	private StuffNode sentinel;
 	private int size;
-	
-	public GenericSLList() {
+
+	public SLList() {
 		sentinel = new StuffNode(null, null);
 		size = 0;
 	}
-	
-	public GenericSLList(GenericType x) {
+
+	public SLList(GenericType x) {
 		sentinel = new StuffNode(null, null);
 		sentinel.next = new StuffNode(x, null);
 		size = 1;
 	}
 	
 	/* Adds x to the front of the list*/
+	@Override
 	public void addFirst(GenericType x) {
 		sentinel.next = new StuffNode(x, sentinel.next);
 		size += 1;
 	}
-	
+	@Override
 	public GenericType getFirst() {
 		return sentinel.next.item;
 	}
-	
+
+	@Override
+	public GenericType getLast() {
+		StuffNode target = sentinel.next;
+		while (target.next != null) {
+			target = target.next;
+		}
+		return target.item;
+	}
+
 	/** Adds an item to the end of the list */
+	@Override
 	public void addLast(GenericType x) {
 		size += 1;
 		
@@ -80,10 +92,12 @@ public class GenericSLList<GenericType> {
 	
 	/* Maintain a special size variable that caches the size of the list
 	 * TANSTAAFl, but spreading the work over each add call is a net win in almost any circumstance*/
+	@Override
 	public int size() {
 		return size;
 	}
-	
+
+	@Override
 	public void print() {
 		System.out.println("The boss doesn't know what he's doing");
 		for (StuffNode p = sentinel.next; p != null; p = p.next) {
@@ -101,6 +115,7 @@ public class GenericSLList<GenericType> {
 		return first;
 	}
 
+	@Override
 	public GenericType removeLast() {
 		if (sentinel.next == null) {
 			return null;
@@ -113,10 +128,38 @@ public class GenericSLList<GenericType> {
 		target.next = null;
 		return last;
 	}
-	
+
+	@Override
+	public GenericType get(int x) {
+		StuffNode target = sentinel;
+		if (x < 0 || x >= size) {
+			System.out.printf("index no. %d out of bounds", x);
+			return null;
+		}
+		for (int i = 0; i <= x; i++) {
+			target = target.next;
+		}
+		return target.item;
+	}
+
+	@Override
+	public void insert(GenericType x, int position) {
+		if (position < 0 || position > size) {
+			System.out.printf("Position %d out of bounds of length %d%n", position, size);
+			return;
+		}
+		StuffNode insert = new StuffNode(x, null);
+		StuffNode target = sentinel;
+		for (int i = 0; i < position; i++) {
+			target = target.next;
+		}
+		insert.next = target.next;
+		target.next = insert;
+	}
+
 	public static void main(String[] args) {
 		/* Create a list of String */
-		GenericSLList<String> L = new GenericSLList<>("World");
+		SLList<String> L = new SLList<>("World");
 		L.addFirst("Hello");
 		L.addLast("!");
 		System.out.println(L.size());
