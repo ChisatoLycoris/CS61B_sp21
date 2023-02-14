@@ -1,9 +1,11 @@
 package deque;
 
+import java.util.Iterator;
+
 /**
  * A Deque (Double-ended queue) implementation class in LinkedList data structure
  * */
-public class LinkedListDeque<T> implements Deque<T>{
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
     private int size;
     private Node<T> sentinel;
 
@@ -37,11 +39,6 @@ public class LinkedListDeque<T> implements Deque<T>{
         Node<T> last = new Node<>(item, sentinel, sentinel.prev);
         sentinel.prev.next = last;
         sentinel.prev = last;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
     }
 
     @Override
@@ -135,5 +132,45 @@ public class LinkedListDeque<T> implements Deque<T>{
             this.next = next;
             this.prev = prev;
         }
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new LinkedLiseDequeIterator();
+    }
+
+
+    private class LinkedLiseDequeIterator implements Iterator<T> {
+        private Node<T> current;
+
+        private LinkedLiseDequeIterator() {
+            current = sentinel;
+        }
+        @Override
+        public boolean hasNext() {
+            return !current.next.equals(sentinel);
+        }
+
+        @Override
+        public T next() {
+            current = current.next;
+            return current.item;
+        }
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {return true;}
+        if (!(o instanceof LinkedListDeque linkedListDequeO)) {return false;}
+        if (this.size != linkedListDequeO.size) {return false;}
+        Node<T> current = this.sentinel;
+        Node<T> target = linkedListDequeO.sentinel;
+        while (! current.next.equals(this.sentinel)) {
+            current = current.next;
+            target = target.next;
+            if (! current.item.equals(target.item)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

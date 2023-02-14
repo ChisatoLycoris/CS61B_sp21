@@ -115,7 +115,7 @@ public class ArraySet<T> implements Iterable<T>{
         return true;
     }
 
-    public static <Glerp> ArraySet<Glerp> of (Glerp... stuff) {
+    public static <Glerp> ArraySet<Glerp> of(Glerp... stuff) {
         ArraySet<Glerp> returnSet = new ArraySet<>();
         for (Glerp x : stuff) {
             returnSet.add(x);

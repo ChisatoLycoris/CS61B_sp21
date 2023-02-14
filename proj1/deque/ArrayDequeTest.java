@@ -2,6 +2,8 @@ package deque;
 
 import org.junit.Test;
 
+import java.util.Iterator;
+
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 
@@ -140,5 +142,60 @@ public class ArrayDequeTest {
             ad1.addLast(i);
         }
         ad1.printDeque();
+    }
+
+    @Test
+    /* check get items from LinkedListDeque */
+    public void getTest() {
+        Deque<Integer> ad1 = new ArrayDeque<>();
+        for (int i = 0; i < 100; i++) {
+            ad1.addLast(i);
+            assertEquals(Integer.valueOf(i), ad1.get(i));
+        }
+
+        Deque<String> ad2 = new ArrayDeque<>();
+        for (int i = 0; i < 100; i++) {
+            String temp = Integer.valueOf(i).toString();
+            ad2.addLast(temp);
+            assertEquals(temp , ad2.get(i));
+        }
+    }
+
+    @Test
+    /* check iterator */
+    public void iteratorTest() {
+        Deque<Integer> ad1 = new ArrayDeque<>();
+        for (int i = 0; i < 100; i++) {
+            ad1.addLast(i);
+        }
+        Iterator<Integer> ad1Iterator = ad1.iterator();
+        int i = 0;
+        while (ad1Iterator.hasNext()) {
+            assertEquals(Integer.valueOf(i), ad1Iterator.next());
+            i += 1;
+        }
+        i = 0;
+        for (Integer j : ad1) {
+            assertEquals(Integer.valueOf(i), j);
+            i += 1;
+        }
+    }
+
+    @Test
+    /* check equals method */
+    public void equalsTest() {
+        Deque<Integer> ad1 = new ArrayDeque<>();
+        Deque<Integer> ad2 = new ArrayDeque<>();
+        for (int i = 0; i < 100; i++) {
+            ad1.addFirst(i);
+            ad2.addFirst(i);
+        }
+        assertTrue(ad1.equals(ad2));
+        ArrayDeque<Integer> ad3 = (ArrayDeque<Integer>)ad2;
+        assertTrue(ad1.equals(ad3));
+        ad2.removeLast();
+        assertFalse(ad1.equals(ad2));
+        assertFalse(ad1.equals(ad3));
+        assertTrue(ad2.equals(ad3));
     }
 }

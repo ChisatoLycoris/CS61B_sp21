@@ -15,7 +15,7 @@ public class Dog implements Comparable<Dog>{
         System.out.println(name + "says: bark");
     }
 
-    /** Returns negative number if this dog is less than the dog point ed by o, and so forth. */
+    /** Returns negative number if this dog is less than the dog pointed by o, and so forth. */
     @Override
     public int compareTo(Dog uddaDog) {
 //        Dog uddaDog = (Dog) o;
