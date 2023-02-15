@@ -47,8 +47,8 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      * */
     private void resize() {
         T[] newItems;
-        if (usage < 0.25 && size > 15) {
-            newItems = (T[]) new Object[items.length / 2];
+        if (usage < 0.4 && size > 8) {
+            newItems = (T[]) new Object[(int) (items.length / 1.5)];
         } else if (usage >= 0.8) {
             newItems = (T[]) new Object[(int) (items.length * 1.2)];
         } else if (startIndex == 0 || (startIndex + size) == items.length) {
