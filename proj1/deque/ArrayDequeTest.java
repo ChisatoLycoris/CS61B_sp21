@@ -3,6 +3,8 @@ package deque;
 import org.junit.Test;
 
 import java.util.Iterator;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -197,5 +199,47 @@ public class ArrayDequeTest {
         assertFalse(ad1.equals(ad2));
         assertFalse(ad1.equals(ad3));
         assertTrue(ad2.equals(ad3));
+    }
+
+    @Test
+    public void randomizedAddRemoveTest() {
+        Deque<Integer> ad1 = new ArrayDeque<>();
+        StringBuilder sb = new StringBuilder("\n");
+        for (int i = 0; i < 1000; i++) {
+            int action = ThreadLocalRandom.current().nextInt(0, 4);
+            switch (action) {
+                case 0:
+                    ad1.addFirst(i);
+                    sb.append("adFirst(").append(i).append(")\n");
+                    assertEquals(sb.toString(), Integer.valueOf(i), ad1.get(0));
+                    break;
+                case 1:
+                    ad1.addLast(i);
+                    sb.append("adLast(").append(i).append(")\n");
+                    assertEquals(sb.toString(), Integer.valueOf(i), ad1.get(ad1.size() - 1));
+                    break;
+                case 2:
+                    if (ad1.isEmpty()) {
+                        break;
+                    }
+                    sb.append("removeFirst()");
+                    assertEquals(sb.toString(), ad1.get(0), ad1.removeFirst());
+                case 3:
+                    if (ad1.isEmpty()) {
+                        break;
+                    }
+                    sb.append("removeLast()");
+                    assertEquals(sb.toString(), ad1.get(ad1.size() - 1), ad1.removeLast());
+            }
+        }
+    }
+
+    @Test
+    public void extremelyAddRemoveTest() {
+        Deque<Integer> ad1 = new ArrayDeque<>();
+        for (int i = 0; i < 10; i++) {
+            ad1.addFirst(i);
+            ad1.removeLast();
+        }
     }
 }

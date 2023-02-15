@@ -5,7 +5,7 @@ import java.util.Iterator;
 /**
  * A Deque (Double-ended queue) implementation class in LinkedList data structure
  * */
-public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private int size;
     private Node<T> sentinel;
 
@@ -17,6 +17,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         sentinel = init;
     }
 
+    /*
     public LinkedListDeque(T item) {
         size = 1;
         sentinel = new Node<T>();
@@ -24,6 +25,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         sentinel.next = first;
         sentinel.prev = first;
     }
+    */
 
     @Override
     public void addFirst(T item) {
@@ -166,16 +168,16 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         if (!(o instanceof LinkedListDeque)) {
             return false;
         }
-        LinkedListDeque linkedListDequeO = (LinkedListDeque)o;
+        LinkedListDeque linkedListDequeO = (LinkedListDeque) o;
         if (this.size != linkedListDequeO.size) {
             return false;
         }
         Node<T> current = this.sentinel;
         Node<T> target = linkedListDequeO.sentinel;
-        while (! current.next.equals(this.sentinel)) {
+        while (!current.next.equals(this.sentinel)) {
             current = current.next;
             target = target.next;
-            if (! current.item.equals(target.item)) {
+            if (!current.item.equals(target.item)) {
                 return false;
             }
         }
