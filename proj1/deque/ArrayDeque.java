@@ -49,8 +49,8 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         T[] newItems;
         if (usage < 0.25 && size > 15) {
             newItems = (T[]) new Object[items.length / 2];
-        } else if (usage >= 0.5) {
-            newItems = (T[]) new Object[items.length * 2];
+        } else if (usage >= 0.8) {
+            newItems = (T[]) new Object[(int) (items.length * 1.2)];
         } else if (startIndex == 0 || (startIndex + size) == items.length) {
             newItems = (T[]) new Object[items.length];
         } else {
@@ -146,15 +146,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ArrayDeque)) {
+        if (!(o instanceof Deque)) {
             return false;
         }
-        ArrayDeque arrayDeque = (ArrayDeque) o;
-        if (this.size != arrayDeque.size) {
+        Deque deque = (Deque) o;
+        if (this.size != deque.size()) {
             return false;
         }
         for (int i = 0; i < size; i++) {
-            if (!this.get(i).equals(arrayDeque.get(i))) {
+            if (!this.get(i).equals(deque.get(i))) {
                 return false;
             }
         }
