@@ -147,13 +147,13 @@ public class ArrayDequeTest {
     @Test
     /* check get items from LinkedListDeque */
     public void getTest() {
-        Deque<Integer> ad1 = new ArrayDeque<>();
+        ArrayDeque<Integer> ad1 = new ArrayDeque<>();
         for (int i = 0; i < 100; i++) {
             ad1.addLast(i);
             assertEquals(Integer.valueOf(i), ad1.get(i));
         }
 
-        Deque<String> ad2 = new ArrayDeque<>();
+        ArrayDeque<String> ad2 = new ArrayDeque<>();
         for (int i = 0; i < 100; i++) {
             String temp = Integer.valueOf(i).toString();
             ad2.addLast(temp);
@@ -164,7 +164,7 @@ public class ArrayDequeTest {
     @Test
     /* check iterator */
     public void iteratorTest() {
-        Deque<Integer> ad1 = new ArrayDeque<>();
+        ArrayDeque<Integer> ad1 = new ArrayDeque<>();
         for (int i = 0; i < 100; i++) {
             ad1.addLast(i);
         }

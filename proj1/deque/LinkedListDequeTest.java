@@ -166,7 +166,7 @@ public class LinkedListDequeTest {
     @Test
     /* check iterator */
     public void iteratorTest() {
-        Deque<Integer> lld1 = new LinkedListDeque<>();
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<>();
         for (int i = 0; i < 100; i++) {
             lld1.addLast(i);
         }

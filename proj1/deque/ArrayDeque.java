@@ -15,6 +15,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         usage = size / (double)items.length;
     }
 
+    /*
     public ArrayDeque(T item) {
         items = (T[]) new Object[8];
         items[3] = item;
@@ -22,6 +23,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         startIndex = 3;
         usage = size / (double)items.length;
     }
+    */
 
     @Override
     public void addFirst(T item) {
@@ -135,9 +137,16 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {return true;}
-        if (! (o instanceof ArrayDeque arrayDeque)) {return false;}
-        if (this.size != arrayDeque.size) {return false;}
+        if (this == o) {
+            return true;
+        }
+        if (! (o instanceof ArrayDeque)) {
+            return false;
+        }
+        ArrayDeque arrayDeque = (ArrayDeque) o;
+        if (this.size != arrayDeque.size) {
+            return false;
+        }
         for (int i = 0; i < size; i++) {
             if (! this.get(i).equals(arrayDeque.get(i))) {
                 return false;
