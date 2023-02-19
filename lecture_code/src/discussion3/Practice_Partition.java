@@ -32,8 +32,9 @@ public class Practice_Partition {
 }
 
 
-//3 Partition
-//Implement partition, which takes in an IntList lst and an integer k, and destructively partitions lst into k IntLists such that each list has the following
+//Partition
+//Implement partition, which takes in an IntList lst and an integer k,
+//and destructively partitions lst into k IntLists such that each list has the following
 //properties:
 //1. It is the same length as the other lists. If this is not possible, i.e. lst cannot
 //be equally partitioned, then the later lists should be one element smaller.
@@ -45,6 +46,7 @@ public class Practice_Partition {
 //For instance, if lst contains the elements 5, 4, 3, 2, 1, and k = 2, then a possible
 //partition (note that there are many possible partitions), is putting elements 5, 3, 2
 //at index 0, and elements 4, 1 at index 1.
-//You may assume you have the access to the method reverse, which destructively reverses the ordering of a given IntList and returns a pointer to the reversed IntList.
+//You may assume you have the access to the method reverse,
+//which destructively reverses the ordering of a given IntList and returns a pointer to the reversed IntList.
 //You may not create any IntList instances. You may not need all the lines.
 //Hint: You may find the % operator helpful.

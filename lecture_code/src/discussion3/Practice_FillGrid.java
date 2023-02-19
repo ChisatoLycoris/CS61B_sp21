@@ -1,10 +1,12 @@
 package discussion3;
 
-/** Fill the lower-left triangle of S with elements of LL and the
+/**
+ * Fill the lower-left triangle of S with elements of LL and the
  * upper-right triangle of S with elements of UR (from left-to
  * right, top-to-bottom in each case). Assumes that S is square and
  * LL and UR have at least sufficient elements.
- * Full question description at the bottom of this java */
+ * Full question description at the bottom of this java
+ * */
 
 public class Practice_FillGrid {
 
@@ -67,7 +69,7 @@ public class Practice_FillGrid {
 	}
 }
 
-//1 Fill Grid
+//Fill Grid
 //Given two one-dimensional arrays LL and UR, fill in the program on the next page
 //to insert the elements of LL into the lower-left triangle of a square two-dimensional
 //array S and UR into the upper-right triangle of S, without modifying elements along

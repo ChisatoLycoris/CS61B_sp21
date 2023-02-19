@@ -62,7 +62,7 @@ public class Practice_EvenOdd {
 
 }
 
-//2 Even Odd
+//Even Odd
 //Implement the method evenOdd by destructively changing the ordering of a given
 //IntList so that even indexed links precede odd indexed links.
 //For instance, if lst is defined as IntList.list(0, 3, 1, 4, 2, 5), evenOdd(lst)
