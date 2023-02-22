@@ -45,7 +45,7 @@ public class BinarySearchTree<T extends Comparable<T>> {
          * Case 3: Deletion key has two children.
          *         -> Choose either predecessor or successor.
          *            Delete chosen node and stick new copy in the deletion key position.
-         *              This deletion guaranteed to be either case 1 or case 2.
+         *            This deletion guaranteed to be either case 1 or case 2.
          *            This strategy is sometimes known as "Hibbard deletion".
          */
         return null;

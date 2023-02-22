@@ -30,7 +30,7 @@ public class WeightQuickUnionDS1 implements DisjointSets{
     public void connect(int p, int q) {
         int[] i = find(p);
         int[] j = find(q);
-        if (i[1] > i[2]) {
+        if (i[1] > j[1]) {
             parent[j[0]] = i[0];
             parent[i[0]] = - i[1] - j[1];
         } else {
