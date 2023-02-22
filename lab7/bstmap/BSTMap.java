@@ -94,7 +94,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         return keySet(sentinel);
     }
 
-    public TreeSet<K> keySet(BSTNode current) {
+    private TreeSet<K> keySet(BSTNode current) {
         TreeSet<K> set = new TreeSet<K>();
         if (current == null) {
             return set;
@@ -103,6 +103,13 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         set.add(current.key);
         set.addAll(keySet(current.right));
         return set;
+    }
+
+    public void printInOrder() {
+        TreeSet<K> keySet = keySet(sentinel);
+        for(K key: keySet) {
+            System.out.println(key);
+        }
     }
 
     @Override
