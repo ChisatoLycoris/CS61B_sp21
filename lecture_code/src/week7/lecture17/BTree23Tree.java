@@ -118,6 +118,7 @@ public class BTree23Tree<Key extends Comparable<Key>, Value> {
                 return x;
             }
             if (cmp == 0) {
+                x.itemList.get(i).value = value;
                 return x;
             }
         }
