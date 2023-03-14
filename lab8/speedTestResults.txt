@@ -1,0 +1,93 @@
+InsertRandomSpeedTest
+    This program inserts random Strings of length L
+    Into different types of maps as <String, Integer> pairs.
+
+Enter # strings to insert into hashmap.ULLMap: 10000
+class hashmap.ULLMap: 0.55 sec
+
+Enter # strings to insert into your hashmap.MyHashMap: 10000
+class hashmap.MyHashMap: 0.03 sec
+
+Enter # strings to insert into Java's HashMap: 10000
+Java's Built-in HashMap: 0.02 sec
+--------------------------------------------------------------
+Enter # strings to insert into hashmap.ULLMap: 100000
+--Stack Overflow -- couldn't add 100000 strings of length 100.
+
+Enter # strings to insert into your hashmap.MyHashMap: 100000
+class hashmap.MyHashMap: 0.19 sec
+
+Enter # strings to insert into Java's HashMap: 100000
+Java's Built-in HashMap: 0.21 sec
+--------------------------------------------------------------
+Enter # strings to insert into hashmap.ULLMap: 1000000
+--Stack Overflow -- couldn't add 1000000 strings of length 100.
+
+Enter # strings to insert into your hashmap.MyHashMap: 1000000
+class hashmap.MyHashMap: 2.22 sec
+
+Enter # strings to insert into Java's HashMap: 1000000
+Java's Built-in HashMap: 1.97 sec
+
+==============================================================
+
+InsertInOrderSpeedTest
+    This program inserts lexicographically increasing Stringsinto Maps as <String, Integer> pairs.
+
+Enter # strings to insert into hashmap.ULLMap: 10000
+class hashmap.ULLMap: 0.58 sec
+
+Enter # strings to insert into hashmap.MyHashMap: 10000
+class hashmap.MyHashMap: 0.03 sec
+
+Enter # strings to insert into Java's HashMap: 10000
+Java's Built-in HashMap: 0.01 sec
+--------------------------------------------------------------
+Enter # strings to insert into hashmap.ULLMap: 100000
+--Stack Overflow -- couldn't add 100000 strings.
+
+Enter # strings to insert into hashmap.MyHashMap: 100000
+class hashmap.MyHashMap: 0.08 sec
+
+Enter # strings to insert into Java's HashMap: 100000
+Java's Built-in HashMap: 0.05 sec
+--------------------------------------------------------------
+Enter # strings to insert into hashmap.ULLMap: 1000000
+--Stack Overflow -- couldn't add 1000000 strings.
+
+Enter # strings to insert into hashmap.MyHashMap: 1000000
+class hashmap.MyHashMap: 0.53 sec
+
+Enter # strings to insert into Java's HashMap: 1000000
+Java's Built-in HashMap: 0.52 sec
+
+==============================================================
+
+BucketsSpeedTest
+    This program inserts random Strings of length L
+    Into different types of maps as <String, Integer> pairs.
+
+Enter # strings to insert into each map: 10000
+class hashmap.MyHashMapALBuckets: 0.02 sec
+class hashmap.MyHashMapLLBuckets: 0.02 sec
+class hashmap.MyHashMapTSBuckets: 0.04 sec
+class hashmap.MyHashMapHSBuckets: 0.03 sec
+class hashmap.MyHashMapPQBuckets: 0.02 sec
+--------------------------------------------------------------
+Enter # strings to insert into each map: 100000
+class hashmap.MyHashMapALBuckets: 0.09 sec
+class hashmap.MyHashMapLLBuckets: 0.11 sec
+class hashmap.MyHashMapTSBuckets: 0.22 sec
+class hashmap.MyHashMapHSBuckets: 0.14 sec
+class hashmap.MyHashMapPQBuckets: 0.11 sec
+--------------------------------------------------------------
+Enter # strings to insert into each map: 1000000
+class hashmap.MyHashMapALBuckets: 0.85 sec
+class hashmap.MyHashMapLLBuckets: 0.93 sec
+class hashmap.MyHashMapTSBuckets: 1.18 sec
+class hashmap.MyHashMapHSBuckets: 1.54 sec
+class hashmap.MyHashMapPQBuckets: 1.21 sec
+
+MyHashMapTSBuckets and MyHashMapHSBuckets searches for a Node by iterating over the entire data structure
+treeSet -> binarySearch
+hashSet -> hashCode to get into the bucket
