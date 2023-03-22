@@ -2,8 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Record the head and branches pointer in the current Gitlet repository.
@@ -20,15 +19,15 @@ public class Branches implements Serializable {
      *
      * branches.get(currentBranch) = head pointer
      */
-    private Map<String, String> branches;
+    private TreeMap<String, String> branches;
     private static File BRANCH_FILE = Utils.join(Repository.GITLET_DIR, ".branches");
-    private Map<String, String> stagedFiles;
-    private Map<String, String> stagedForRemovalFiles;
+    private TreeMap<String, String> stagedFiles;
+    private TreeMap<String, String> stagedForRemovalFiles;
 
     private Branches() {
-        branches = new HashMap<>();
-        stagedFiles = new HashMap<>();
-        stagedForRemovalFiles = new HashMap<>();
+        branches = new TreeMap<>();
+        stagedFiles = new TreeMap<>();
+        stagedForRemovalFiles = new TreeMap<>();
     }
 
     public static Branches init() {
@@ -64,7 +63,11 @@ public class Branches implements Serializable {
     }
 
     public Map<String, String> getStagedFiles() {
-        return stagedFiles;
+        Map<String, String> copy = new TreeMap<>();
+        stagedFiles.keySet().forEach(fileName -> {
+            copy.put(fileName, stagedFiles.get(fileName));
+        });
+        return copy;
     }
 
     public Map<String, String> getStagedForRemovalFiles() {
@@ -154,4 +157,79 @@ public class Branches implements Serializable {
         }
     }
 
+    public void status() {
+        printBranches();
+        printStagedFile();
+        printRemovedFile();
+        printModificationNotStaged();
+        printUntrackedFiles();
+    }
+
+    private void printBranches() {
+        System.out.println("=== Branches ===");
+        branches.navigableKeySet().forEach(branch -> {
+            if (!currentBranch.equals(branch)) {
+                System.out.println(branch);
+            }
+            System.out.println("*" + branch);
+        });
+        System.out.println();
+    }
+
+    private void printStagedFile() {
+        System.out.println("=== Staged Files ===");
+        stagedFiles.navigableKeySet().forEach(System.out::println);
+        System.out.println();
+    }
+
+    private void printRemovedFile() {
+        System.out.println("=== Removed Files ===");
+        stagedForRemovalFiles.navigableKeySet().forEach(System.out::println);
+        System.out.println();
+    }
+
+    private void printModificationNotStaged() {
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        Commit head = Commit.findCommit(branches.get(currentBranch));
+        Map<String, String> trackingFilesCopy = head.getBlobs();
+        Map<String, String> stagedFilesCopy = getStagedFiles();
+        Set<String> result = new TreeSet<>();
+        List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
+        for (String fileName : workingFiles) {
+            String fileHash = Utils.sha1(Utils.readContents(Utils.join(Repository.CWD, fileName)));
+            String stagedHash = stagedFilesCopy.remove(fileName);
+            String trackingHash = trackingFilesCopy.remove(fileName);
+            if (stagedHash != null) {
+                if (!stagedHash.equals(fileHash)) {
+                    result.add(fileName + " (modified)");
+                }
+                continue;
+            }
+            if (trackingHash != null && !trackingHash.equals(fileHash)) {
+                result.add(fileName + " (modified)");
+            }
+        }
+        stagedFilesCopy.keySet().forEach(fileName -> {
+            result.add(fileName + " (deleted)");
+        });
+        trackingFilesCopy.keySet().forEach(fileName -> {
+            if (!stagedForRemovalFiles.containsKey(fileName)) {
+                result.add(fileName + " (deleted)");
+            }
+        });
+        result.stream().sorted().forEach(System.out::println);
+        System.out.println();
+    }
+
+    private void printUntrackedFiles() {
+        System.out.println("=== Untracked Files ===");
+        Commit head = Commit.findCommit(branches.get(currentBranch));
+        List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
+        workingFiles.forEach(fileName -> {
+            if (!head.isTracking(fileName) && !stagedFiles.containsKey(fileName)) {
+                System.out.println(fileName);
+            }
+        });
+        System.out.println();
+    }
 }

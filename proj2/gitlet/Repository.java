@@ -141,9 +141,27 @@ public class Repository {
 
     public static void globalLog() {
         for (String fileName : Utils.plainFilenamesIn(Repository.COMMIT_DIR)) {
-            Commit target = Utils.readObject(new File(fileName), Commit.class);
+            Commit target = Commit.findCommit(fileName);
             System.out.println(target);
         }
+    }
+
+    public static void find(String message) {
+        boolean found = false;
+        for (String fileName : Utils.plainFilenamesIn(Repository.COMMIT_DIR)) {
+            Commit target = Commit.findCommit(fileName);
+            if (target.getMessage().contains(message)) {
+                System.out.println(fileName);
+                found = true;
+            }
+        }
+        if (!found) {
+            Main.exitWithError("Found no commit with that message.");
+        }
+    }
+
+    public static void status() {
+        getBranches().status();
     }
 
 }

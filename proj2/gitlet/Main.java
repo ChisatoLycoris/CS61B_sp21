@@ -42,6 +42,14 @@ public class Main {
                 Repository.globalLog();
 
             }
+            case "find" -> {
+                validateFind(args);
+                Repository.find(args[1]);
+            }
+            case "status" -> {
+                validateStatus(args);
+                Repository.status();
+            }
             default -> exitWithError("No command with that name exists.");
         }
     }
@@ -110,6 +118,24 @@ public class Main {
     }
 
     private static void validateGlobalLog(String[] args) {
+        if (args.length != 1) {
+            exitWithError("Incorrect operands.");
+        }
+        if (!Repository.exists()) {
+            exitWithError("Not in an initialized Gitlet directory.");
+        }
+    }
+
+    private static void validateFind(String[] args) {
+        if (args.length != 2) {
+            exitWithError("Incorrect operands.");
+        }
+        if (!Repository.exists()) {
+            exitWithError("Not in an initialized Gitlet directory.");
+        }
+    }
+
+    private static void validateStatus(String[] args) {
         if (args.length != 1) {
             exitWithError("Incorrect operands.");
         }

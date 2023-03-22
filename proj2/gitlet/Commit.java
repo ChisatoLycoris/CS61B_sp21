@@ -154,4 +154,15 @@ public class Commit implements Serializable {
         return sb.toString();
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public Map<String, String> getBlobs() {
+        Map<String, String> copy = new HashMap<>();
+        blobs.keySet().forEach(fileName -> {
+            copy.put(fileName, blobs.get(fileName));
+        });
+        return copy;
+    }
 }
