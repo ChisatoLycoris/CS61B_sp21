@@ -79,7 +79,7 @@ public class Repository {
      * @param file
      */
     public static void add(String fileName, File file) {
-        String fileHash = Utils.sha1(file);
+        String fileHash = Utils.sha1(Utils.readContents(file));
         Branches current = getBranches();
         if (current.isTracking(fileName, fileHash)) {
             if (current.isStaged(fileName)) {
@@ -91,30 +91,59 @@ public class Repository {
             return;
         }
         current.stage(fileName, file, fileHash);
-//        File trackingFile = Utils.join(BLOB_DIR, fileHash);
-//        File stageFile = Utils.join(STAGE_DIR, fileHash);
-//        byte[] contents = Utils.readContents(file);
-//        if (trackingFile.exists()) {
-//            File rmFile = Utils.join(RM_DIR, fileHash);
-//            Utils.restrictedDelete(stageFile);
-//            Utils.restrictedDelete(rmFile);
-//            // not sure if it is needed to recover the
-//            return;
-//        }
-//        try {
-//            stageFile.createNewFile();
-//        } catch (IOException e) {
-//            throw new GitletException("I/O error occurs while create new stageFile");
-//        }
-//        Utils.writeContents(stageFile, contents);
     }
 
-    public static void commit() {
-
+    public static void commit(String message) {
+        getBranches().commit(message);
     }
 
-    public static void rm() {
+    public static void rm(String fileName) {
+        Branches current = getBranches();
+        if (current.isStaged(fileName)) {
+            current.unStage(fileName);
+            return;
+        }
+        if (current.isTracking(fileName)) {
+            current.stageForRemoval(fileName);
+            return;
+        }
+        Main.exitWithError("No reason to remove the file.");
+    }
 
+    /**
+     * Create a new File under the given directory with given FileName and contents.
+     * @param dir Target directory
+     * @param fileName File Name
+     * @param contentFile The content wants to store
+     * @return the created File
+     */
+    public static File createNewFile(File dir, String fileName, File contentFile) {
+        File newFile = Utils.join(dir, fileName);
+        byte[] contents = Utils.readContents(contentFile);
+        Utils.writeContents(newFile, contents);
+        return newFile;
+    }
+
+    public static void recoverFile(String commitHash, String fileName) {
+        File commitStorage = Utils.join(Repository.COMMIT_DIR, commitHash);
+        if (!commitStorage.exists()) {
+            Main.exitWithError("no such commit exists");
+        }
+        Commit commit = Utils.readObject(commitStorage, Commit.class);
+        String commitFileHash = commit.trackingFile(fileName);
+        File commitFile = Utils.join(Repository.BLOB_DIR, commitFileHash);
+        Repository.createNewFile(Repository.CWD, fileName, commitFile);
+    }
+
+    public static void log() {
+        getBranches().log();
+    }
+
+    public static void globalLog() {
+        for (String fileName : Utils.plainFilenamesIn(Repository.COMMIT_DIR)) {
+            Commit target = Utils.readObject(new File(fileName), Commit.class);
+            System.out.println(target);
+        }
     }
 
 }

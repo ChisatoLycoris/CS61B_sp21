@@ -16,17 +16,33 @@ public class Main {
             exitWithError("Please enter a command.");
         }
         String firstArg = args[0];
-        switch(firstArg) {
-            case "init":
+        switch (firstArg) {
+            case "init" -> {
                 validateInit(args);
                 Repository.init();
-                break;
-            case "add":
+            }
+            case "add" -> {
                 File file = validateAdd(args);
                 Repository.add(args[1], file);
-                break;
-            default:
-                exitWithError("No command with that name exists.");
+            }
+            case "commit" -> {
+                validateCommit(args);
+                Repository.commit(args[1]);
+            }
+            case "rm" -> {
+                validateRm(args);
+                Repository.rm(args[1]);
+            }
+            case "log" -> {
+                validateLog(args);
+                Repository.log();
+            }
+            case "global-log" -> {
+                validateGlobalLog(args);
+                Repository.globalLog();
+
+            }
+            default -> exitWithError("No command with that name exists.");
         }
     }
 
@@ -61,7 +77,40 @@ public class Main {
     }
 
     private static void validateCommit(String[] args) {
+        if (args.length == 1 || args[1].trim().length() == 0) {
+            exitWithError("Please enter a commit message.");
+        }
+        if (args.length > 2) {
+            exitWithError("Incorrect operands.");
+        }
+        if (!Repository.exists()) {
+            exitWithError("Not in an initialized Gitlet directory.");
+        }
+        if (Repository.getBranches().stageAreaIsEmpty()) {
+            exitWithError("No changes added to the commit.");
+        }
+    }
+
+    private static void validateRm(String[] args) {
         if (args.length != 2) {
+            exitWithError("Incorrect operands.");
+        }
+        if (!Repository.exists()) {
+            exitWithError("Not in an initialized Gitlet directory.");
+        }
+    }
+
+    private static void validateLog(String[] args) {
+        if (args.length != 1) {
+            exitWithError("Incorrect operands.");
+        }
+        if (!Repository.exists()) {
+            exitWithError("Not in an initialized Gitlet directory.");
+        }
+    }
+
+    private static void validateGlobalLog(String[] args) {
+        if (args.length != 1) {
             exitWithError("Incorrect operands.");
         }
         if (!Repository.exists()) {
