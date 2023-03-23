@@ -24,19 +24,20 @@ public class Branches implements Serializable {
     private TreeMap<String, String> stagedFiles;
     private TreeMap<String, String> stagedForRemovalFiles;
 
-    private Branches() {
+    private Branches(Commit initialCommit) {
         branches = new TreeMap<>();
         stagedFiles = new TreeMap<>();
         stagedForRemovalFiles = new TreeMap<>();
+        currentBranch = "master";
+        branches.put("master", initialCommit.hash());
     }
 
     public static Branches init() {
         if (!BRANCH_FILE.exists()) {
-            Branches init = new Branches();
             Commit initialCommit = new Commit();
             initialCommit.persist();
-            init.currentBranch = "master";
-            init.createNewBranch("master", initialCommit.hash());
+            Branches init = new Branches(initialCommit);
+            init.persist();
             return init;
         }
         throw new GitletException("call Branches.init() in an initialized Gitlet directory. ");
@@ -57,11 +58,6 @@ public class Branches implements Serializable {
         Utils.writeObject(BRANCH_FILE, this);
     }
 
-    public void createNewBranch(String branchName, String pointer) {
-        branches.put(branchName, pointer);
-        Utils.writeObject(BRANCH_FILE, this);
-    }
-
     public Map<String, String> getStagedFiles() {
         Map<String, String> copy = new TreeMap<>();
         stagedFiles.keySet().forEach(fileName -> {
@@ -75,13 +71,11 @@ public class Branches implements Serializable {
     }
 
     public boolean isTracking(String fileName) {
-        Commit head = Commit.findCommit(branches.get(fileName));
-        return head.isTracking(fileName);
+        return headCommit().isTracking(fileName);
     }
 
     public boolean isTracking(String fileName, String fileHash) {
-        Commit head = Commit.findCommit(branches.get(currentBranch));
-        return head.isTracking(fileName, fileHash);
+        return headCommit().isTracking(fileName, fileHash);
     }
 
     public boolean isStaged(String fileName) {
@@ -190,8 +184,7 @@ public class Branches implements Serializable {
 
     private void printModificationNotStaged() {
         System.out.println("=== Modifications Not Staged For Commit ===");
-        Commit head = Commit.findCommit(branches.get(currentBranch));
-        Map<String, String> trackingFilesCopy = head.getBlobs();
+        Map<String, String> trackingFilesCopy = headCommit().getBlobs();
         Map<String, String> stagedFilesCopy = getStagedFiles();
         Set<String> result = new TreeSet<>();
         List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
@@ -223,13 +216,74 @@ public class Branches implements Serializable {
 
     private void printUntrackedFiles() {
         System.out.println("=== Untracked Files ===");
-        Commit head = Commit.findCommit(branches.get(currentBranch));
         List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
         workingFiles.forEach(fileName -> {
-            if (!head.isTracking(fileName) && !stagedFiles.containsKey(fileName)) {
+            if (!headCommit().isTracking(fileName) && !stagedFiles.containsKey(fileName)) {
                 System.out.println(fileName);
             }
         });
         System.out.println();
+    }
+
+    private boolean containsUntrackedFile() {
+        List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
+        for (String fileName : workingFiles) {
+            if (!headCommit().isTracking(fileName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String checkBranch(String branchName) {
+        if (!branches.containsKey(branchName)) {
+            return "No such branch exists.";
+        }
+        if (currentBranch.equals(branchName)) {
+            return "No need to checkout the current branch.";
+        }
+        if (!stageAreaIsEmpty() || containsUntrackedFile()) {
+            return "There is an untracked file in the way; delete it, or add and commit it first.";
+        }
+        return "ok";
+    }
+
+    public Commit headCommit() {
+        return Commit.findCommit(branches.get(currentBranch));
+    }
+
+    public void checkoutBranch(String branchName) {
+        List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
+        Commit target = Commit.findCommit(branches.get(branchName));
+        Map<String, String> branchFiles = target.getBlobs();
+        branchFiles.keySet().forEach(fileName -> {
+            File branchFile = Utils.join(Repository.BLOB_DIR, branchFiles.get(fileName));
+            workingFiles.remove(fileName);
+            Repository.createNewFile(Repository.CWD, fileName, branchFile);
+        });
+        workingFiles.forEach(fileName -> {
+            File file = Utils.join(Repository.CWD, fileName);
+            file.delete();
+        });
+        currentBranch = branchName;
+        persist();
+    }
+
+    public void branch(String branchName) {
+        branches.put(branchName, branches.get(currentBranch));
+        persist();
+    }
+
+    public boolean containsBranch(String branchName) {
+        return branches.containsKey(branchName);
+    }
+
+    public String getCurrentBranch() {
+        return currentBranch;
+    }
+
+    public void rmBranch(String branchName) {
+        branches.remove(branchName);
+        persist();
     }
 }

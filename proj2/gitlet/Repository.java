@@ -164,4 +164,39 @@ public class Repository {
         getBranches().status();
     }
 
+    public static String checkBranch(String branchName) {
+        return getBranches().checkBranch(branchName);
+    }
+
+    public static boolean trackingByCommit(String commitHash, String fileName) {
+        Commit commit = Commit.findCommit(commitHash);
+        if (commit == null) {
+            Main.exitWithError("No commit with that id exists.");
+        }
+        return commit.isTracking(fileName);
+    }
+
+    public static void checkoutBranch(String branch) {
+        getBranches().checkoutBranch(branch);
+    }
+
+    public static void checkoutFile(String fileName) {
+        Commit head = getBranches().headCommit();
+        File commitFile = Utils.join(BLOB_DIR, head.trackingFile(fileName));
+        createNewFile(CWD, fileName, commitFile);
+    }
+
+    public static void checkoutFile(String commitHash, String fileName) {
+        Commit commit = Commit.findCommit(commitHash);
+        File commitFile = Utils.join(BLOB_DIR, commit.trackingFile(fileName));
+        createNewFile(CWD, fileName, commitFile);
+    }
+
+    public static void branch(String branchName) {
+        getBranches().branch(branchName);
+    }
+
+    public static void rmBranch(String branchName) {
+        getBranches().rmBranch(branchName);
+    }
 }

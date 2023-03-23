@@ -101,7 +101,7 @@ public class Commit implements Serializable {
     public static Commit findCommit(String sha1) {
         File result = Utils.join(Repository.COMMIT_DIR, sha1);
         if (!result.exists()) {
-            throw new GitletException("no commit with given sha1 string exists. ");
+            return null;
         }
         return Utils.readObject(result, Commit.class);
     }
