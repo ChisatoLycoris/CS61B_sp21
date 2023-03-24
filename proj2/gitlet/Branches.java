@@ -43,10 +43,6 @@ public class Branches implements Serializable {
         throw new GitletException("call Branches.init() in an initialized Gitlet directory. ");
     }
 
-    public static boolean exists() {
-        return BRANCH_FILE.exists();
-    }
-
     public static Branches getInstance() {
         if (BRANCH_FILE.exists()) {
             return Utils.readObject(BRANCH_FILE, Branches.class);
@@ -67,7 +63,11 @@ public class Branches implements Serializable {
     }
 
     public Map<String, String> getStagedForRemovalFiles() {
-        return stagedForRemovalFiles;
+        Map<String, String> copy = new TreeMap<>();
+        stagedForRemovalFiles.keySet().forEach(fileName -> {
+            copy.put(fileName, stagedForRemovalFiles.get(fileName));
+        });
+        return copy;
     }
 
     public boolean isTracking(String fileName) {
@@ -100,7 +100,7 @@ public class Branches implements Serializable {
     }
 
     public void stageForRemoval(String fileName) {
-        String fileHash = Commit.findCommit(branches.get(currentBranch)).trackingFile(fileName);
+        String fileHash = Repository.findCommit(branches.get(currentBranch)).trackingFile(fileName);
         File commitFile = Utils.join(Repository.COMMIT_DIR, fileHash);
         stagedForRemovalFiles.put(fileName, fileHash);
         File rmFile = Repository.createNewFile(Repository.RM_DIR, fileHash, commitFile);
@@ -115,7 +115,7 @@ public class Branches implements Serializable {
             File rmFile = Utils.join(Repository.RM_DIR, rmFileHash);
             Utils.restrictedDelete(rmFile);
         }
-        Repository.recoverFile(branches.get(currentBranch), fileName);
+        Repository.checkoutFile(headCommit(), fileName);
         persist();
     }
 
@@ -125,14 +125,16 @@ public class Branches implements Serializable {
 
     public void commit(String message) {
         Commit newCommit = new Commit(message, branches.get(currentBranch));
-        for (String fileName : stagedFiles.keySet()) {
+        Set<String> stagedFileNames = stagedFiles.keySet();
+        for (String fileName : stagedFileNames) {
             String fileHash = stagedFiles.remove(fileName);
             newCommit.trackFile(fileName, fileHash);
             File stagedFile = Utils.join(Repository.STAGE_DIR, fileHash);
             Repository.createNewFile(Repository.BLOB_DIR, fileHash, stagedFile);
             Utils.restrictedDelete(stagedFile);
         }
-        for (String fileName : stagedForRemovalFiles.keySet()) {
+        Set<String> stagedForRemovalFileNames = stagedForRemovalFiles.keySet();
+        for (String fileName : stagedForRemovalFileNames) {
             String fileHash = stagedForRemovalFiles.remove(fileName);
             newCommit.unTrackFile(fileName, fileHash);
             File rmFile = Utils.join(Repository.RM_DIR, fileHash);
@@ -144,7 +146,7 @@ public class Branches implements Serializable {
     }
 
     public void log() {
-        Commit current = Commit.findCommit(branches.get(currentBranch));
+        Commit current = Repository.findCommit(branches.get(currentBranch));
         while (current != null) {
             System.out.println(current);
             current = current.getParent();
@@ -235,7 +237,7 @@ public class Branches implements Serializable {
         return false;
     }
 
-    public String checkBranch(String branchName) {
+    public String checkBranchBeforeCheckout(String branchName) {
         if (!branches.containsKey(branchName)) {
             return "No such branch exists.";
         }
@@ -249,12 +251,12 @@ public class Branches implements Serializable {
     }
 
     public Commit headCommit() {
-        return Commit.findCommit(branches.get(currentBranch));
+        return Repository.findCommit(branches.get(currentBranch));
     }
 
     public void checkoutBranch(String branchName) {
         List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
-        Commit target = Commit.findCommit(branches.get(branchName));
+        Commit target = Repository.findCommit(branches.get(branchName));
         Map<String, String> branchFiles = target.getBlobs();
         branchFiles.keySet().forEach(fileName -> {
             File branchFile = Utils.join(Repository.BLOB_DIR, branchFiles.get(fileName));
@@ -285,5 +287,33 @@ public class Branches implements Serializable {
     public void rmBranch(String branchName) {
         branches.remove(branchName);
         persist();
+    }
+
+    public void reset(Commit commit) {
+        List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
+        commit.getBlobs().keySet().forEach(fileName -> {
+            Repository.checkoutFile(commit, fileName);
+            workingFiles.remove(fileName);
+        });
+        workingFiles.stream().filter(this::isTracking).forEach(fileName -> {
+            File file = Utils.join(Repository.CWD, fileName);
+            file.delete();
+        });
+        branches.put(currentBranch, commit.hash());
+        clearStagedArea();
+        persist();
+    }
+
+    private void clearStagedArea() {
+        stagedFiles.keySet().forEach(fileName -> {
+            File file = Utils.join(Repository.STAGE_DIR, stagedFiles.get(fileName));
+            Utils.restrictedDelete(file);
+        });
+        stagedFiles.clear();
+        stagedForRemovalFiles.keySet().forEach(fileName -> {
+            File file = Utils.join(Repository.RM_DIR, stagedForRemovalFiles.get(fileName));
+            Utils.restrictedDelete(file);
+        });
+        stagedForRemovalFiles.clear();
     }
 }

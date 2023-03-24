@@ -1,22 +1,17 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 
 import static gitlet.Utils.*;
 
 /**
  *  Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
+ *  contains all the gitlet command method.
  *
  *  @author Ming
  */
 public class Repository {
     /**
-     * TODO: add instance variables here.
-     *
      * List all instance variables of the Repository class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided two examples for you.
@@ -69,14 +64,16 @@ public class Repository {
     }
 
     /**
+     * add command
      * Adds a copy of the file as it currently exists to the staging area.
-     * Staging an already-staged file overwrites the previous entry in the staging area with the new contents.
+     * Staging an already-staged file overwrites the previous entry
+     * in the staging area with the new contents.
      * If the current working version of the file is identical to the version in the current commit,
      * do not stage it to be added, and remove it from the staging area if it is already there
-     * (as can happen when a file is changed, added, and then changed back to it’s original version).
-     * The file will no longer be staged for removal (see gitlet rm), if it was at the time of the command.
-     * @param fileName
-     * @param file
+     * (as can happen when a file is changed, added, and then changed back to original version).
+     * The file will no longer be staged for removal, if it was at the time of the command.
+     * @param fileName file name
+     * @param file file object representation
      */
     public static void add(String fileName, File file) {
         String fileHash = Utils.sha1(Utils.readContents(file));
@@ -93,10 +90,18 @@ public class Repository {
         current.stage(fileName, file, fileHash);
     }
 
+    /**
+     * commit command
+     * @param message commit message as log information
+     */
     public static void commit(String message) {
         getBranches().commit(message);
     }
 
+    /**
+     * rm command
+     * @param fileName file name
+     */
     public static void rm(String fileName) {
         Branches current = getBranches();
         if (current.isStaged(fileName)) {
@@ -108,6 +113,108 @@ public class Repository {
             return;
         }
         Main.exitWithError("No reason to remove the file.");
+    }
+
+    /**
+     * log command
+     */
+    public static void log() {
+        getBranches().log();
+    }
+
+    /**
+     * global-log command
+     */
+    public static void globalLog() {
+        for (String fileName : Utils.plainFilenamesIn(Repository.COMMIT_DIR)) {
+            Commit target = findCommit(fileName);
+            System.out.println(target);
+        }
+    }
+
+    /**
+     * find command
+     * @param message commit message
+     */
+    public static void find(String message) {
+        boolean found = false;
+        for (String fileName : Utils.plainFilenamesIn(Repository.COMMIT_DIR)) {
+            Commit target = findCommit(fileName);
+            if (target.getMessage().contains(message)) {
+                System.out.println(fileName);
+                found = true;
+            }
+        }
+        if (!found) {
+            Main.exitWithError("Found no commit with that message.");
+        }
+    }
+
+    /**
+     * status command
+     */
+    public static void status() {
+        getBranches().status();
+    }
+
+    /**
+     * checkout command *1 (checkout [branch name])
+     * @param branchName branch name
+     */
+    public static void checkoutBranch(String branchName) {
+        getBranches().checkoutBranch(branchName);
+    }
+
+    /**
+     * checkout command *2 (checkout -- [file name])
+     * @param fileName file name
+     */
+    public static void checkoutFile(String fileName) {
+        Commit head = getBranches().headCommit();
+        File commitFile = Utils.join(BLOB_DIR, head.trackingFile(fileName));
+        createNewFile(CWD, fileName, commitFile);
+    }
+
+    /**
+     * checkout command *3 (checkout [commit id] -- [file name])
+     * @param commit commit object representation of the commit id
+     * @param fileName file name
+     */
+    public static void checkoutFile(Commit commit, String fileName) {
+        File commitFile = Utils.join(BLOB_DIR, commit.trackingFile(fileName));
+        createNewFile(CWD, fileName, commitFile);
+    }
+
+    /**
+     * branch command
+     * @param branchName branch name
+     */
+    public static void branch(String branchName) {
+        getBranches().branch(branchName);
+    }
+
+    /**
+     * rm-branch command
+     * @param branchName branch name
+     */
+    public static void rmBranch(String branchName) {
+        getBranches().rmBranch(branchName);
+    }
+
+    /**
+     * reset command
+     * @param commit commit object representation
+     */
+    public static void reset(Commit commit) {
+        getBranches().reset(commit);
+    }
+
+    /**
+     * merge command
+     * @param branchName branch name
+     */
+    public static void merge(String branchName) {
+
     }
 
     /**
@@ -124,79 +231,25 @@ public class Repository {
         return newFile;
     }
 
-    public static void recoverFile(String commitHash, String fileName) {
-        File commitStorage = Utils.join(Repository.COMMIT_DIR, commitHash);
-        if (!commitStorage.exists()) {
-            Main.exitWithError("no such commit exists");
+    /**
+     * find the commit object stored in .gitlet directory with given commit id
+     * @param commitHash commit id
+     * @return commit object representation of the commit id, null if not existed
+     */
+    public static Commit findCommit(String commitHash) {
+        File result = Utils.join(Repository.COMMIT_DIR, commitHash);
+        if (!result.exists()) {
+            return null;
         }
-        Commit commit = Utils.readObject(commitStorage, Commit.class);
-        String commitFileHash = commit.trackingFile(fileName);
-        File commitFile = Utils.join(Repository.BLOB_DIR, commitFileHash);
-        Repository.createNewFile(Repository.CWD, fileName, commitFile);
+        return Utils.readObject(result, Commit.class);
     }
 
-    public static void log() {
-        getBranches().log();
-    }
-
-    public static void globalLog() {
-        for (String fileName : Utils.plainFilenamesIn(Repository.COMMIT_DIR)) {
-            Commit target = Commit.findCommit(fileName);
-            System.out.println(target);
-        }
-    }
-
-    public static void find(String message) {
-        boolean found = false;
-        for (String fileName : Utils.plainFilenamesIn(Repository.COMMIT_DIR)) {
-            Commit target = Commit.findCommit(fileName);
-            if (target.getMessage().contains(message)) {
-                System.out.println(fileName);
-                found = true;
-            }
-        }
-        if (!found) {
-            Main.exitWithError("Found no commit with that message.");
-        }
-    }
-
-    public static void status() {
-        getBranches().status();
-    }
-
-    public static String checkBranch(String branchName) {
-        return getBranches().checkBranch(branchName);
-    }
-
-    public static boolean trackingByCommit(String commitHash, String fileName) {
-        Commit commit = Commit.findCommit(commitHash);
-        if (commit == null) {
-            Main.exitWithError("No commit with that id exists.");
-        }
-        return commit.isTracking(fileName);
-    }
-
-    public static void checkoutBranch(String branch) {
-        getBranches().checkoutBranch(branch);
-    }
-
-    public static void checkoutFile(String fileName) {
-        Commit head = getBranches().headCommit();
-        File commitFile = Utils.join(BLOB_DIR, head.trackingFile(fileName));
-        createNewFile(CWD, fileName, commitFile);
-    }
-
-    public static void checkoutFile(String commitHash, String fileName) {
-        Commit commit = Commit.findCommit(commitHash);
-        File commitFile = Utils.join(BLOB_DIR, commit.trackingFile(fileName));
-        createNewFile(CWD, fileName, commitFile);
-    }
-
-    public static void branch(String branchName) {
-        getBranches().branch(branchName);
-    }
-
-    public static void rmBranch(String branchName) {
-        getBranches().rmBranch(branchName);
+    /**
+     * check the condition of current branch before checkout
+     * @param branchName branch name client want to checkout
+     * @return the check result represent in String
+     */
+    public static String checkBranchBeforeCheckout(String branchName) {
+        return getBranches().checkBranchBeforeCheckout(branchName);
     }
 }

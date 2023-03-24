@@ -50,6 +50,12 @@ public class Main {
             case "rm-branch" -> {
                 validateRmBranch(args);
             }
+            case "reset" -> {
+                validateReset(args);
+            }
+            case "merge" -> {
+                validateMerge(args);
+            }
             default -> exitWithError("No command with that name exists.");
         }
     }
@@ -157,7 +163,7 @@ public class Main {
         }
         switch (args.length) {
             case 2 -> {
-                String checkBranchResult = Repository.checkBranch(args[1]);
+                String checkBranchResult = Repository.checkBranchBeforeCheckout(args[1]);
                 if (!"ok".equals(checkBranchResult)) {
                     exitWithError(checkBranchResult);
                 }
@@ -176,10 +182,14 @@ public class Main {
                 if (!"--".equals(args[2])) {
                     exitWithError("Incorrect operands.");
                 }
-                if (!Repository.trackingByCommit(args[1], args[3])) {
+                Commit commit = Repository.findCommit(args[1]);
+                if (commit == null) {
+                    Main.exitWithError("No commit with that id exists.");
+                }
+                if (!commit.isTracking(args[3])) {
                     exitWithError("File does not exist in that commit.");
                 }
-                Repository.checkoutFile(args[1], args[3]);
+                Repository.checkoutFile(commit, args[3]);
             }
             default -> {
                 exitWithError("Incorrect operands.");
@@ -214,5 +224,37 @@ public class Main {
             exitWithError("Cannot remove the current branch.");
         }
         Repository.rmBranch(args[1]);
+    }
+
+    private static void validateReset(String[] args) {
+        if (!Repository.exists()) {
+            exitWithError("Not in an initialized Gitlet directory.");
+        }
+        if (args.length != 2) {
+            exitWithError("Incorrect operands.");
+        }
+        Commit commit = Repository.findCommit(args[1]);
+        if (commit == null) {
+            exitWithError("No commit with that id exists.");
+        }
+        Repository.reset(commit);
+    }
+
+    private static void validateMerge(String[] args) {
+        if (!Repository.exists()) {
+            exitWithError("Not in an initialized Gitlet directory.");
+        }
+        if (args.length != 2) {
+            exitWithError("Incorrect operands.");
+        }
+        if (!Repository.getBranches().stageAreaIsEmpty()) {
+            exitWithError("You have uncommitted changes.");
+        }
+        if (!Repository.getBranches().containsBranch(args[1])) {
+            exitWithError("A branch with that name does not exist.");
+        }
+        if (Repository.getBranches().getCurrentBranch().equals(args[1])) {
+            exitWithError("Cannot merge a branch with itself.");
+        }
     }
 }

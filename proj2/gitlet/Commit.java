@@ -43,11 +43,11 @@ public class Commit implements Serializable {
     }
 
     /** Constructor for normal commit. */
-    public Commit (String message, String parent) {
+    public Commit(String message, String parent) {
         this.message = message;
         this.parent = parent;
         this.anotherParentIfMerge = null;
-        Commit parentCommit = findCommit(parent);
+        Commit parentCommit = Repository.findCommit(parent);
         blobs = new HashMap<>();
         for (String fileName : parentCommit.blobs.keySet()) {
             blobs.put(fileName, parentCommit.blobs.get(fileName));
@@ -56,7 +56,7 @@ public class Commit implements Serializable {
     }
 
     /** Constructor for merge commit.*/
-    public Commit (String message, String parent, String anotherParentIfMerge) {
+    public Commit(String message, String parent, String anotherParentIfMerge) {
         this.message = message;
         this.parent = parent;
         this.anotherParentIfMerge = anotherParentIfMerge;
@@ -98,14 +98,6 @@ public class Commit implements Serializable {
         return hash;
     }
 
-    public static Commit findCommit(String sha1) {
-        File result = Utils.join(Repository.COMMIT_DIR, sha1);
-        if (!result.exists()) {
-            return null;
-        }
-        return Utils.readObject(result, Commit.class);
-    }
-
     public boolean isTracking(String fileName) {
         return blobs.containsKey(fileName);
     }
@@ -120,14 +112,14 @@ public class Commit implements Serializable {
 
     public Commit getParent() {
         if (parent != null) {
-            return findCommit(parent);
+            return Repository.findCommit(parent);
         }
         return null;
     }
 
     public Commit getAnotherParent() {
         if (anotherParentIfMerge != null) {
-            return findCommit(anotherParentIfMerge);
+            return Repository.findCommit(anotherParentIfMerge);
         }
         return null;
     }
@@ -146,7 +138,8 @@ public class Commit implements Serializable {
         sb.append("\ncommit ");
         sb.append(this.hash());
         if (isMerged()) {
-            sb.append("\nMerge: ").append(parent, 0, 7).append(" ").append(anotherParentIfMerge, 0, 7);
+            sb.append("\nMerge: ").append(parent, 0, 7)
+                    .append(" ").append(anotherParentIfMerge, 0, 7);
         }
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
         sb.append("\nDate: ").append(dateFormat.format(timestamp)).append("\n");
