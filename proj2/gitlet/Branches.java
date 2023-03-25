@@ -125,7 +125,7 @@ public class Branches implements Serializable {
 
     public void commit(String message) {
         Commit newCommit = new Commit(message, branches.get(currentBranch));
-        Set<String> stagedFileNames = stagedFiles.keySet();
+        Set<String> stagedFileNames = getStagedFiles().keySet();
         for (String fileName : stagedFileNames) {
             String fileHash = stagedFiles.remove(fileName);
             newCommit.trackFile(fileName, fileHash);
@@ -133,7 +133,7 @@ public class Branches implements Serializable {
             Repository.createNewFile(Repository.BLOB_DIR, fileHash, stagedFile);
             Utils.restrictedDelete(stagedFile);
         }
-        Set<String> stagedForRemovalFileNames = stagedForRemovalFiles.keySet();
+        Set<String> stagedForRemovalFileNames = getStagedForRemovalFiles().keySet();
         for (String fileName : stagedForRemovalFileNames) {
             String fileHash = stagedForRemovalFiles.remove(fileName);
             newCommit.unTrackFile(fileName, fileHash);
