@@ -101,7 +101,7 @@ public class Branches implements Serializable {
 
     public void stageForRemoval(String fileName) {
         String fileHash = Repository.findCommit(branches.get(currentBranch)).trackingFile(fileName);
-        File commitFile = Utils.join(Repository.COMMIT_DIR, fileHash);
+        File commitFile = Utils.join(Repository.BLOB_DIR, fileHash);
         stagedForRemovalFiles.put(fileName, fileHash);
         File rmFile = Repository.createNewFile(Repository.RM_DIR, fileHash, commitFile);
         File file = Utils.join(Repository.CWD, fileName);
@@ -123,8 +123,9 @@ public class Branches implements Serializable {
         return stagedFiles.isEmpty() && stagedForRemovalFiles.isEmpty();
     }
 
-    public void commit(String message) {
-        Commit newCommit = new Commit(message, branches.get(currentBranch));
+    public void commit(String message, String branchName) {
+        String branchHash = branchName == null ? null : branches.get(branchName);
+        Commit newCommit = new Commit(message, branches.get(currentBranch), branchHash);
         Set<String> stagedFileNames = getStagedFiles().keySet();
         for (String fileName : stagedFileNames) {
             String fileHash = stagedFiles.remove(fileName);
@@ -140,8 +141,11 @@ public class Branches implements Serializable {
             File rmFile = Utils.join(Repository.RM_DIR, fileHash);
             Utils.restrictedDelete(rmFile);
         }
-        branches.put(currentBranch, newCommit.hash());
         newCommit.persist();
+        branches.put(currentBranch, newCommit.hash());
+        if (branchName != null) {
+            branches.put(branchName, newCommit.hash());
+        }
         persist();
     }
 
@@ -227,14 +231,15 @@ public class Branches implements Serializable {
         System.out.println();
     }
 
-    private boolean containsUntrackedFile() {
+    public List<String> untrackedFiles() {
         List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
+        List<String> untrackedFiles = new LinkedList<>();
         for (String fileName : workingFiles) {
             if (!headCommit().isTracking(fileName)) {
-                return true;
+                untrackedFiles.add(fileName);
             }
         }
-        return false;
+        return untrackedFiles;
     }
 
     public String checkBranchBeforeCheckout(String branchName) {
@@ -244,7 +249,7 @@ public class Branches implements Serializable {
         if (currentBranch.equals(branchName)) {
             return "No need to checkout the current branch.";
         }
-        if (!stageAreaIsEmpty() || containsUntrackedFile()) {
+        if (!stageAreaIsEmpty() || !untrackedFiles().isEmpty()) {
             return "There is an untracked file in the way; delete it, or add and commit it first.";
         }
         return "ok";
@@ -316,4 +321,118 @@ public class Branches implements Serializable {
         });
         stagedForRemovalFiles.clear();
     }
+
+    public void merge(String branchName) {
+        Commit currentHead = headCommit();
+        Commit branchHead = Repository.findCommit(branches.get(branchName));
+        Commit spiltPoint = findSpiltPoint(branchName);
+        Map <String, String> branchHeadFiles = branchHead.getBlobs();
+        Map <String, String> spiltPointFiles = spiltPoint.getBlobs();
+        Map <String, String> currentHeadFiles = currentHead.getBlobs();
+        boolean mergeConflict = false;
+        for (String fileName : branchHead.getBlobs().keySet()) {
+            String branchHeadFileHash = branchHeadFiles.remove(fileName);
+            String spiltPointFileHash = spiltPointFiles.remove(fileName);
+            String currentHeadFileHash = currentHeadFiles.remove(fileName);
+            if (spiltPointFileHash == null) {
+                if (currentHeadFileHash == null) {
+                    // 5.
+                    mergeBranchFile(fileName, branchHeadFileHash);
+                }
+                if (!branchHeadFileHash.equals(currentHeadFileHash)) {
+                    // 8.
+                    mergeConflict(fileName, currentHeadFileHash, branchHeadFileHash);
+                    mergeConflict = true;
+                }
+                continue;
+            }
+            if (currentHeadFileHash == null) {
+                if (!branchHeadFileHash.equals(spiltPointFileHash)) {
+                    mergeConflict(fileName, null, branchHeadFileHash);
+                    mergeConflict = true;
+                }
+                // 7.
+                continue;
+            }
+            if (currentHeadFileHash.equals(branchHeadFileHash)) {
+                // 3.
+                continue;
+            }
+            if (spiltPointFileHash.equals(currentHeadFileHash)) {
+                // 1.
+                mergeBranchFile(fileName, branchHeadFileHash);
+                continue;
+            }
+            // 8.
+            mergeConflict(fileName, currentHeadFileHash, branchHeadFileHash);
+            mergeConflict = true;
+        };
+        // 2.
+        // 4.
+        for (String fileName : spiltPointFiles.keySet()) {
+            // 6.
+            if (spiltPointFiles.get(fileName).equals(currentHeadFiles.get(fileName))) {
+                unStageForRemoval(fileName);
+            }
+        }
+        StringBuilder sb = new StringBuilder("Merged ");
+        sb.append(branchName).append(" into ").append(currentBranch).append(".");
+        if (mergeConflict) {
+            sb.append("\nEncountered a merge conflict.");
+        }
+        commit(sb.toString(), branchName);
+    }
+
+    private void mergeBranchFile(String fileName, String branchFileHash) {
+        File branchFile = Utils.join(Repository.BLOB_DIR, branchFileHash);
+        Repository.createNewFile(Repository.CWD, fileName, branchFile);
+        stage(fileName, branchFile, branchFileHash);
+    }
+
+    private void mergeConflict(String fileName, String currentFileHash, String branchFileHash) {
+        String currentFileContent = currentFileHash != null ? readContent(currentFileHash) : "";
+        String branchFileContent = branchFileHash != null ? readContent(branchFileHash) : "";
+        StringBuilder sb = new StringBuilder("<<<<<<< HEAD\n");
+        sb.append(currentFileContent).append("=======\n");
+        sb.append(branchFileContent).append(">>>>>>>");
+        File file = Utils.join(Repository.CWD, fileName);
+        Utils.writeContents(file, sb.toString());
+        stage(fileName, file, Utils.sha1(Utils.readContents(file)));
+    }
+
+    private String readContent(String fileHash) {
+        File file = Utils.join(Repository.BLOB_DIR, fileHash);
+        return Utils.readContentsAsString(file);
+    }
+
+    private Commit findSpiltPoint(String branchName) {
+        Commit currentHead = headCommit();
+        List<Commit> history = currentHead.history();
+        Commit branchHead = Repository.findCommit(branches.get(branchName));
+        Commit spiltPoint = branchHead;
+        while (!history.contains(spiltPoint)) {
+            spiltPoint = spiltPoint.getParent();
+        }
+        if (spiltPoint.equals(branchHead)) {
+            Main.exitWithError("Given branch is an ancestor of the current branch.");
+        }
+        if (spiltPoint.equals(currentHead)) {
+            Main.exitWithError("Current branch fast-forwarded.");
+        }
+        return spiltPoint;
+    }
+
+    public boolean untrackedFileBeImpacted(String branchName) {
+        List<String> untrackedFiles = untrackedFiles();
+        Commit branchHead = Repository.findCommit(branches.get(branchName));
+        Commit spiltPoint =findSpiltPoint(branchName);
+        for (String fileName : untrackedFiles) {
+            if (branchHead.isTracking(fileName) && spiltPoint.isTracking(fileName)
+            && !branchHead.trackingFile(fileName).equals(spiltPoint.trackingFile(fileName))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

@@ -256,5 +256,9 @@ public class Main {
         if (Repository.getBranches().getCurrentBranch().equals(args[1])) {
             exitWithError("Cannot merge a branch with itself.");
         }
+        if (Repository.containsUntrackedFiles()) {
+            exitWithError("There is an untracked file in the way; delete it, or add and commit it first.");
+        }
+        Repository.merge(args[1]);
     }
 }

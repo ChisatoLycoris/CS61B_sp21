@@ -43,10 +43,10 @@ public class Commit implements Serializable {
     }
 
     /** Constructor for normal commit. */
-    public Commit(String message, String parent) {
+    public Commit(String message, String parent,  String anotherParentIfMerge) {
         this.message = message;
         this.parent = parent;
-        this.anotherParentIfMerge = null;
+        this.anotherParentIfMerge = anotherParentIfMerge;
         Commit parentCommit = Repository.findCommit(parent);
         blobs = new HashMap<>();
         for (String fileName : parentCommit.blobs.keySet()) {
@@ -56,12 +56,12 @@ public class Commit implements Serializable {
     }
 
     /** Constructor for merge commit.*/
-    public Commit(String message, String parent, String anotherParentIfMerge) {
-        this.message = message;
-        this.parent = parent;
-        this.anotherParentIfMerge = anotherParentIfMerge;
-        timestamp = new Date();
-    }
+//    public Commit(String message, String parent, String anotherParentIfMerge) {
+//        this.message = message;
+//        this.parent = parent;
+//        this.anotherParentIfMerge = anotherParentIfMerge;
+//        timestamp = new Date();
+//    }
 
     void trackFile(String fileName, String fileHash) {
         blobs.put(fileName, fileHash);
@@ -157,5 +157,15 @@ public class Commit implements Serializable {
             copy.put(fileName, blobs.get(fileName));
         });
         return copy;
+    }
+
+    public List<Commit> history() {
+        List<Commit> history = new LinkedList<>();
+        Commit temp = this;
+        while (temp != null) {
+            history.add(temp);
+            temp = Repository.findCommit(temp.parent);
+        }
+        return history;
     }
 }

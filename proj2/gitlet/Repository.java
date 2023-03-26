@@ -95,7 +95,7 @@ public class Repository {
      * @param message commit message as log information
      */
     public static void commit(String message) {
-        getBranches().commit(message);
+        getBranches().commit(message, null);
     }
 
     /**
@@ -214,7 +214,7 @@ public class Repository {
      * @param branchName branch name
      */
     public static void merge(String branchName) {
-
+        getBranches().merge(branchName);
     }
 
     /**
@@ -251,5 +251,13 @@ public class Repository {
      */
     public static String checkBranchBeforeCheckout(String branchName) {
         return getBranches().checkBranchBeforeCheckout(branchName);
+    }
+
+    public static boolean untrackedFileBeImpacted(String branchName) {
+        return getBranches().untrackedFileBeImpacted(branchName);
+    }
+
+    public static boolean containsUntrackedFiles() {
+        return !getBranches().untrackedFiles().isEmpty();
     }
 }
