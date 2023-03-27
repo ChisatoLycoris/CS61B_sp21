@@ -76,7 +76,7 @@ public class Repository {
      * @param file file object representation
      */
     public static void add(String fileName, File file) {
-        String fileHash = Utils.sha1(Utils.readContents(file));
+        String fileHash = Utils.sha1(fileName, Utils.readContents(file));
         Branches current = getBranches();
         if (current.isTracking(fileName, fileHash)) {
             if (current.isStaged(fileName)) {

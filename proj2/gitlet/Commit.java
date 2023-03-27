@@ -53,6 +53,7 @@ public class Commit implements Serializable {
             blobs.put(fileName, parentCommit.blobs.get(fileName));
         }
         timestamp = new Date();
+        hash();
     }
 
     /** Constructor for merge commit.*/
@@ -159,12 +160,13 @@ public class Commit implements Serializable {
         return copy;
     }
 
-    public List<Commit> history() {
-        List<Commit> history = new LinkedList<>();
+    public List<String> history() {
+        List<String> history = new LinkedList<>();
         Commit temp = this;
-        while (temp != null) {
-            history.add(temp);
+        history.add(temp.hash());
+        while (temp.parent != null) {
             temp = Repository.findCommit(temp.parent);
+            history.add(temp.hash());
         }
         return history;
     }

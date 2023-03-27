@@ -88,7 +88,7 @@ public class Branches implements Serializable {
 
     public void stage(String fileName, File file, String fileHash) {
         stagedFiles.put(fileName, fileHash);
-        File stageFile = Repository.createNewFile(Repository.STAGE_DIR, fileHash, file);
+        Repository.createNewFile(Repository.STAGE_DIR, fileHash, file);
         persist();
     }
 
@@ -168,10 +168,10 @@ public class Branches implements Serializable {
     private void printBranches() {
         System.out.println("=== Branches ===");
         branches.navigableKeySet().forEach(branch -> {
-            if (!currentBranch.equals(branch)) {
-                System.out.println(branch);
+            if (currentBranch.equals(branch)) {
+                System.out.print("*");
             }
-            System.out.println("*" + branch);
+            System.out.println(branch);
         });
         System.out.println();
     }
@@ -195,7 +195,7 @@ public class Branches implements Serializable {
         Set<String> result = new TreeSet<>();
         List<String> workingFiles = Utils.plainFilenamesIn(Repository.CWD);
         for (String fileName : workingFiles) {
-            String fileHash = Utils.sha1(Utils.readContents(Utils.join(Repository.CWD, fileName)));
+            String fileHash = Utils.sha1(fileName, Utils.readContents(Utils.join(Repository.CWD, fileName)));
             String stagedHash = stagedFilesCopy.remove(fileName);
             String trackingHash = trackingFilesCopy.remove(fileName);
             if (stagedHash != null) {
@@ -326,9 +326,9 @@ public class Branches implements Serializable {
         Commit currentHead = headCommit();
         Commit branchHead = Repository.findCommit(branches.get(branchName));
         Commit spiltPoint = findSpiltPoint(branchName);
-        Map <String, String> branchHeadFiles = branchHead.getBlobs();
-        Map <String, String> spiltPointFiles = spiltPoint.getBlobs();
-        Map <String, String> currentHeadFiles = currentHead.getBlobs();
+        Map<String, String> branchHeadFiles = branchHead.getBlobs();
+        Map<String, String> spiltPointFiles = spiltPoint.getBlobs();
+        Map<String, String> currentHeadFiles = currentHead.getBlobs();
         boolean mergeConflict = false;
         for (String fileName : branchHead.getBlobs().keySet()) {
             String branchHeadFileHash = branchHeadFiles.remove(fileName);
@@ -338,13 +338,14 @@ public class Branches implements Serializable {
                 if (currentHeadFileHash == null) {
                     // 5.
                     mergeBranchFile(fileName, branchHeadFileHash);
+                    continue;
                 }
                 if (!branchHeadFileHash.equals(currentHeadFileHash)) {
                     // 8.
                     mergeConflict(fileName, currentHeadFileHash, branchHeadFileHash);
                     mergeConflict = true;
+                    continue;
                 }
-                continue;
             }
             if (currentHeadFileHash == null) {
                 if (!branchHeadFileHash.equals(spiltPointFileHash)) {
@@ -366,7 +367,7 @@ public class Branches implements Serializable {
             // 8.
             mergeConflict(fileName, currentHeadFileHash, branchHeadFileHash);
             mergeConflict = true;
-        };
+        }
         // 2.
         // 4.
         for (String fileName : spiltPointFiles.keySet()) {
@@ -377,10 +378,10 @@ public class Branches implements Serializable {
         }
         StringBuilder sb = new StringBuilder("Merged ");
         sb.append(branchName).append(" into ").append(currentBranch).append(".");
-        if (mergeConflict) {
-            sb.append("\nEncountered a merge conflict.");
-        }
         commit(sb.toString(), branchName);
+        if (mergeConflict) {
+            System.out.println("Encountered a merge conflict.");
+        }
     }
 
     private void mergeBranchFile(String fileName, String branchFileHash) {
@@ -397,7 +398,7 @@ public class Branches implements Serializable {
         sb.append(branchFileContent).append(">>>>>>>");
         File file = Utils.join(Repository.CWD, fileName);
         Utils.writeContents(file, sb.toString());
-        stage(fileName, file, Utils.sha1(Utils.readContents(file)));
+        stage(fileName, file, Utils.sha1(fileName, Utils.readContents(file)));
     }
 
     private String readContent(String fileHash) {
@@ -407,10 +408,10 @@ public class Branches implements Serializable {
 
     private Commit findSpiltPoint(String branchName) {
         Commit currentHead = headCommit();
-        List<Commit> history = currentHead.history();
+        List<String> history = currentHead.history();
         Commit branchHead = Repository.findCommit(branches.get(branchName));
         Commit spiltPoint = branchHead;
-        while (!history.contains(spiltPoint)) {
+        while (!history.contains(spiltPoint.hash())) {
             spiltPoint = spiltPoint.getParent();
         }
         if (spiltPoint.equals(branchHead)) {
@@ -425,10 +426,10 @@ public class Branches implements Serializable {
     public boolean untrackedFileBeImpacted(String branchName) {
         List<String> untrackedFiles = untrackedFiles();
         Commit branchHead = Repository.findCommit(branches.get(branchName));
-        Commit spiltPoint =findSpiltPoint(branchName);
+        Commit spiltPoint = findSpiltPoint(branchName);
         for (String fileName : untrackedFiles) {
             if (branchHead.isTracking(fileName) && spiltPoint.isTracking(fileName)
-            && !branchHead.trackingFile(fileName).equals(spiltPoint.trackingFile(fileName))) {
+                && !branchHead.trackingFile(fileName).equals(spiltPoint.trackingFile(fileName))) {
                 return true;
             }
         }
