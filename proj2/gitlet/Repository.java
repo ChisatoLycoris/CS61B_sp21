@@ -206,6 +206,8 @@ public class Repository {
      * @param commit commit object representation
      */
     public static void reset(Commit commit) {
+        File file = Utils.join(BLOB_DIR, "test");
+        Utils.writeContents(file, "pass validate");
         getBranches().reset(commit);
     }
 
@@ -214,7 +216,16 @@ public class Repository {
      * @param branchName branch name
      */
     public static void merge(String branchName) {
-        getBranches().merge(branchName);
+        Branches branch = getBranches();
+        Commit branchHead = branch.getBranchHead(branchName);
+        Commit spiltPoint = branch.findSpiltPoint(branchHead);
+        if (spiltPoint.equals(branchHead)) {
+            Main.exitWithError("Given branch is an ancestor of the current branch.");
+        }
+        if (spiltPoint.equals(branch.headCommit())) {
+            Main.exitWithError("Current branch fast-forwarded.");
+        }
+        getBranches().merge(branchName, branchHead, spiltPoint);
     }
 
     /**
@@ -253,8 +264,8 @@ public class Repository {
         return getBranches().checkBranchBeforeCheckout(branchName);
     }
 
-    public static boolean untrackedFileBeImpacted(String branchName) {
-        return getBranches().untrackedFileBeImpacted(branchName);
+    public static boolean untrackedFileBeImpacted(Commit commit) {
+        return getBranches().untrackedFileBeImpactedByReset(commit);
     }
 
     public static boolean containsUntrackedFiles() {

@@ -160,11 +160,14 @@ public class Commit implements Serializable {
         return copy;
     }
 
-    public List<String> history() {
-        List<String> history = new LinkedList<>();
+    public Set<String> history() {
+        Set<String> history = new HashSet<>();
         Commit temp = this;
         history.add(temp.hash());
         while (temp.parent != null) {
+            if (temp.anotherParentIfMerge != null) {
+                history.addAll(Repository.findCommit(temp.anotherParentIfMerge).history());
+            }
             temp = Repository.findCommit(temp.parent);
             history.add(temp.hash());
         }

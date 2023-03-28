@@ -7,8 +7,9 @@ import java.util.List;
 
 public class TemporaryTest {
     public static void main(String[] args) {
-        String dir = "C:\\JavaWorkplace\\CS61B_sp21\\proj2\\testing\\test34-merge-conflicts_3\\.gitlet\\commit";
-        List<String> list= Utils.plainFilenamesIn(dir);
+        String dir = "C:\\JavaWorkplace\\CS61B_sp21\\proj2\\testing\\" +
+                "test34-merge-conflicts_3\\.gitlet\\commit";
+        List<String> list = Utils.plainFilenamesIn(dir);
         List<Commit> commitList = new LinkedList<>();
         for (String commitHash : list) {
             File file = Utils.join(dir, commitHash);

@@ -237,6 +237,12 @@ public class Main {
         if (commit == null) {
             exitWithError("No commit with that id exists.");
         }
+        if (Repository.untrackedFileBeImpacted(commit)) {
+            File file = Utils.join(Repository.BLOB_DIR, "test");
+            Utils.writeContents(file, "not pass validate");
+            exitWithError("There is an untracked file in the way;" +
+                    " delete it, or add and commit it first.");
+        }
         Repository.reset(commit);
     }
 
