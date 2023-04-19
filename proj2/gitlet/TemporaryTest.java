@@ -1,14 +1,17 @@
 package gitlet;
 
 
+import org.junit.Test;
+
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
 public class TemporaryTest {
-    public static void main(String[] args) {
-        String dir = "C:\\JavaWorkplace\\CS61B_sp21\\proj2\\testing\\" +
-                "test34-merge-conflicts_3\\.gitlet\\commit";
+    @Test
+    public void tempTest() {
+        String dir = "C:\\JavaWorkplace\\CS61B_sp21\\proj2\\testing\\"
+                + "test34-merge-conflicts_3\\.gitlet\\commit";
         List<String> list = Utils.plainFilenamesIn(dir);
         List<Commit> commitList = new LinkedList<>();
         for (String commitHash : list) {

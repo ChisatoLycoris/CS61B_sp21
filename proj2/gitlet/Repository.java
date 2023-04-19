@@ -219,11 +219,22 @@ public class Repository {
         Branches branch = getBranches();
         Commit branchHead = branch.getBranchHead(branchName);
         Commit spiltPoint = branch.findSpiltPoint(branchHead);
-        if (spiltPoint.equals(branchHead)) {
-            Main.exitWithError("Given branch is an ancestor of the current branch.");
+        if ("master".equals(branchName)) {
+            File file = Utils.join(CWD, "spiltPoint");
+            Utils.writeContents(file, spiltPoint.toString());
+            File file2 = Utils.join(CWD, "head");
+            Utils.writeContents(file2, branch.headCommit().toString());
+            File file3 = Utils.join(CWD, "branchHead");
+            Utils.writeContents(file3, branchHead.toString());
         }
-        if (spiltPoint.equals(branch.headCommit())) {
-            Main.exitWithError("Current branch fast-forwarded.");
+        if (spiltPoint.hash().equals(branch.headCommit().hash())) {
+            checkoutBranch(branchName);
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+        if (spiltPoint.hash().equals(branchHead.hash())) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
         }
         getBranches().merge(branchName, branchHead, spiltPoint);
     }
