@@ -15,4 +15,6 @@ public interface MinPQ<Item extends Comparable<Item>> {
 
     /** Returns the size of priority queue. */
     int size();
+
+    default boolean isEmpty() { return size() == 0; }
 }
