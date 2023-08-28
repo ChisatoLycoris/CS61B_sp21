@@ -7,26 +7,55 @@ import java.util.List;
 
 public class BTree23Tree<Key extends Comparable<Key>, Value> {
     private Node root;
-    private int itemsQty;
+    private final int itemsQty = 2;
 
-    public BTree23Tree(int itemsQty) {
-        this.itemsQty = itemsQty;
+    public BTree23Tree() {
     }
 
     private class Node {
-        private List<ItemMapping> itemList;
-        private List<Node> nodeList;
+        private final List<ItemMapping> itemList;
+        private final List<Node> nodeList;
         private int size;
-        private boolean isLeaf;
+        private final boolean isLeaf;
         private Node(Key key, Value value) {
             itemList = new LinkedList<>();
             itemList.add(new ItemMapping(key, value));
             size = 1;
-            nodeList = new ArrayList<>();
-            for (int i = 0; i <= itemsQty; i++) {
-                nodeList.add(null);
-            }
+            nodeList = new LinkedList<>();
             isLeaf = true;
+        }
+
+        private Node(Key key, Value value, Node left, Node right) {
+            itemList = new LinkedList<>();
+            itemList.add(new ItemMapping(key, value));
+            size = 1 + left.size + right.size;
+            nodeList = new LinkedList<>();
+            nodeList.add(left);
+            nodeList.add(right);
+            isLeaf = false;
+        }
+
+        private int put(Key key, Value value) {
+            int index = 0;
+            for (; index < itemList.size(); index++) {
+                int cmp = key.compareTo(itemList.get(index).key);
+                if (cmp < 0) {
+                    break;
+                } else if (cmp == 0) {
+                    return index;
+                }
+            }
+            itemList.add(index, new ItemMapping(key, value));
+            size += 1;
+            return index;
+        }
+
+        private void calculateSize() {
+            int s = itemList.size();
+            for (Node node : nodeList) {
+                s += node.size;
+            }
+            size = s;
         }
 
         @Override
@@ -104,8 +133,7 @@ public class BTree23Tree<Key extends Comparable<Key>, Value> {
             return new Node(key, value);
         }
         if (x.isLeaf) {
-            x.itemList.add(new ItemMapping(key, value));
-            x.itemList.sort(Comparator.comparing((ItemMapping item) -> item.key));
+            x.put(key, value);
             return x;
         }
         for (int i = 0; i < x.itemList.size(); i++) {
@@ -131,75 +159,51 @@ public class BTree23Tree<Key extends Comparable<Key>, Value> {
 
     private void spilt(Node parent, Node x) {
         if (x.itemList.size() <= itemsQty) {
+            x.calculateSize();
+            parent.calculateSize();
             return;
         }
         ItemMapping moveUpItem = x.itemList.remove(1);
         ItemMapping spiltItem = x.itemList.remove(0);
-        parent.itemList.add(moveUpItem);
-        parent.itemList.sort(Comparator.comparing((ItemMapping item) -> item.key));
-        Node spilt = new Node(spiltItem.key, spiltItem.value);
-        spilt.nodeList.remove(1);
-        spilt.nodeList.add(1, x.nodeList.remove(1));
-        spilt.nodeList.remove(0);
-        spilt.nodeList.add(0, x.nodeList.remove(0));
-        spilt.size = 1 + size(spilt.nodeList.get(0)) + size(spilt.nodeList.get(1));
-        spilt.isLeaf = (spilt.nodeList.get(0) == null) && (spilt.nodeList.get(1) == null);
-        x.nodeList.add(null);
-        if (x.nodeList.size() < itemsQty + 1) {
-            x.nodeList.add(null);
+        int moveUpIndex = parent.put(moveUpItem.key, moveUpItem.value);
+        Node spilt;
+        if (x.isLeaf) {
+            spilt = new Node(spiltItem.key, spiltItem.value);
+        } else {
+            spilt = new Node(spiltItem.key, spiltItem.value, x.nodeList.remove(0), x.nodeList.remove(0));
         }
-        x.size = x.itemList.size();
-        x.nodeList.forEach((Node temp) -> x.size += size(temp));
-        int moveUpIndex = parent.itemList.indexOf(moveUpItem);
+        x.calculateSize();
         parent.nodeList.add(moveUpIndex, spilt);
-        if (parent.nodeList.get(itemsQty + 1) == null) {
-            parent.nodeList.remove(itemsQty + 1);
-        }
+        parent.calculateSize();
     }
 
     private Node spilt(Node x) {
         if (x.itemList.size() <= itemsQty) {
+            x.calculateSize();
             return x;
         }
         ItemMapping moveUpItem = x.itemList.remove(1);
         ItemMapping spiltItem = x.itemList.remove(0);
-        Node moveUp = new Node(moveUpItem.key, moveUpItem.value);
-        Node spilt = new Node(spiltItem.key, spiltItem.value);
-        spilt.nodeList.remove(1);
-        spilt.nodeList.add(1, x.nodeList.remove(1));
-        spilt.nodeList.remove(0);
-        spilt.nodeList.add(0, x.nodeList.remove(0));
-        spilt.size = 1 + size(spilt.nodeList.get(0)) + size(spilt.nodeList.get(1));
-        spilt.isLeaf = (spilt.nodeList.get(0) == null) && (spilt.nodeList.get(1) == null);
-        x.nodeList.add(null);
-        if (x.nodeList.size() < itemsQty + 1) {
-            x.nodeList.add(null);
+        Node spilt;
+        if (x.isLeaf) {
+            spilt = new Node(spiltItem.key, spiltItem.value);
+        } else {
+            spilt = new Node(spiltItem.key, spiltItem.value, x.nodeList.remove(0), x.nodeList.remove(0));
         }
-        x.size = x.itemList.size();
-        x.nodeList.forEach((Node temp) -> x.size += size(temp));
-        moveUp.nodeList.remove(0);
-        moveUp.nodeList.add(0, spilt);
-        moveUp.nodeList.remove(1);
-        moveUp.nodeList.add(1, x);
-        moveUp.isLeaf = false;
-        moveUp.size = 1 + spilt.size + x.size;
-        return moveUp;
+        x.calculateSize();
+        return new Node(moveUpItem.key, moveUpItem.value, spilt, x);
     }
 
     public void delete(Key key) {
-
+        throw new UnsupportedOperationException();
     }
 
     public void print() {
-        List<Key> keyList = new LinkedList<>();
+        if (size() == 0) return;
         List<Node> nodeList = new LinkedList<>();
         nodeList.add(root);
         while (!nodeList.isEmpty()) {
             Node current = nodeList.remove(0);
-            if (current == null) {
-                System.out.println("null");
-                continue;
-            }
             System.out.println(current);
             if (current.isLeaf) {
                 continue;
@@ -209,7 +213,7 @@ public class BTree23Tree<Key extends Comparable<Key>, Value> {
     }
 
     public static void main(String[] args) {
-        BTree23Tree<Integer, Integer> test = new BTree23Tree<>(2);
+        BTree23Tree<Integer, Integer> test = new BTree23Tree<>();
         test.put(2, 0);
         test.print();
         System.out.println("=======================");
